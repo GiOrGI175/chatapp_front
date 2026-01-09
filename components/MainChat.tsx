@@ -1,17 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { socket } from '@/lib/socket';
+
+export type Message = {
+  id: number;
+  text: string;
+  senderId: number;
+  createdAt: string;
+};
+
+export type Chat = {
+  id: number;
+  userIds: number[];
+  messages: Message[];
+};
 
 export default function MainChat() {
-  const [messages, setMessages] = useState([]);
-  const [senderId, setSenderId] = useState(null);
-  const [text, setText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [senderId, setSenderId] = useState<number | null>(null);
+  const [text, setText] = useState<string>('');
 
   useEffect(() => {
     const item = localStorage.getItem('sender');
-    if (item) {
-      setSenderId(JSON.parse(item));
-    }
+    if (item) setSenderId(JSON.parse(item));
+  }, []);
+
+  useEffect(() => {
+    socket.connect();
+    socket.emit('join-main');
+
+    socket.on('main-message', (msg: Message) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.off('main-message');
+    };
   }, []);
 
   async function getChatMessages() {
@@ -32,12 +57,11 @@ export default function MainChat() {
     });
 
     setText('');
-    getChatMessages();
   }
 
-  const onSubmit = (e) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!text) return;
+    if (!text.trim()) return;
     addMessage();
   };
 
@@ -54,9 +78,10 @@ export default function MainChat() {
       <form onSubmit={onSubmit} className='p-2'>
         <input
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setText(e.target.value)
+          }
           className='border w-full'
-          placeholder='Type message...'
         />
         <button type='submit'>send</button>
       </form>

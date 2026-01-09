@@ -2,9 +2,21 @@
 
 import { useId } from '@/store/setIdStore';
 import { useEffect, useState } from 'react';
+export type Message = {
+  id: number;
+  text: string;
+  senderId: number;
+  createdAt: string;
+};
+
+export type Chat = {
+  id: number;
+  userIds: number[];
+  messages: Message[];
+};
 
 export default function Chat() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [senderId, setSenderId] = useState(null);
   const [text, setText] = useState('');
 
@@ -40,7 +52,7 @@ export default function Chat() {
     getChatMessages();
   }
 
-  const onSubmit = (e) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!text.trim()) return;
     addMessage();

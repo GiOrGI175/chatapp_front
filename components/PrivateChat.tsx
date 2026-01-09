@@ -1,38 +1,57 @@
 'use client';
 
-import { useId } from '@/store/setIdStore';
 import { useEffect, useState } from 'react';
+import { useChatStore } from '@/store/chatStore';
 
-export default function PrivateChat() {
-  const [privateChats, setPrivateChats] = useState([]);
+type User = {
+  id: number;
+  username: string;
+};
 
-  async function getPrivateChats() {
-    const response = await fetch('http://localhost:3001/api/chat');
-    const result = await response.json();
+export default function UserList() {
+  const [users, setUsers] = useState<User[]>([]);
+  const setSelectedChatId = useChatStore((s) => s.setSelectedChatId);
 
-    console.log(result, 'pvchat');
+  const senderId =
+    typeof window !== 'undefined'
+      ? JSON.parse(localStorage.getItem('sender') || 'null')
+      : null;
 
-    setPrivateChats(result);
+  async function getUsers() {
+    const res = await fetch('http://localhost:3001/api/auth/getUsers');
+    setUsers(await res.json());
   }
 
   useEffect(() => {
-    getPrivateChats();
+    getUsers();
   }, []);
 
-  const setId = useId((state) => state.setId);
+  async function handleUserClick(receiverId: number) {
+    const res = await fetch('http://localhost:3001/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userIds: [senderId, receiverId],
+      }),
+    });
+
+    const chat = await res.json();
+    setSelectedChatId(chat.id);
+  }
 
   return (
-    <div className='w-20 h-125 border flex flex-col '>
-      {privateChats.map((chat, index) => (
-        <div key={index} className='border w-full'>
-          <button
-            className='cursor-pointer w-full'
-            onClick={() => setId(chat.id)}
+    <div className='border flex gap-5 p-5'>
+      {users
+        .filter((u) => u.id !== senderId)
+        .map((u) => (
+          <div
+            key={u.id}
+            onClick={() => handleUserClick(u.id)}
+            className='cursor-pointer hover:underline border'
           >
-            <span className='text-[20px]'>chat: {chat.id}</span>
-          </button>
-        </div>
-      ))}
+            {u.username}
+          </div>
+        ))}
     </div>
   );
 }

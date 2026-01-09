@@ -2,9 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-export default function page() {
+type AuthFormData = {
+  username: string;
+  email?: string;
+  password: string;
+};
+
+export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -13,76 +19,69 @@ export default function page() {
 
   const router = useRouter();
 
-  async function postData(data) {
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+  async function postData(data: AuthFormData) {
+    const response = await fetch('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
 
-      //   if (!response.ok) {
-      //     throw new Error(`HTTP error! status: ${response.status}`);
-      //   }
+    const result = await response.json();
 
-      const result = await response.json();
-      console.log('Success:', result);
-      return result;
-    } catch (error) {
-      console.error('Error:', error);
+    if (!response.ok) {
+      throw new Error(result.message || 'Register failed');
     }
+
+    return result;
   }
 
-  const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    postData(formData);
-    router.push('/login');
+
+    try {
+      await postData(formData);
+      router.push('/login');
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
-    <div className='w-full h-screen flex justify-center items-center rounded-2xl'>
-      <div className='h-125 flex justify-center items-center p-5 shadow-2xl  flex-col'>
-        <form className='w-full  flex flex-col'>
-          <div>
-            <label htmlFor='username'>username</label>
-            <input
-              type='text'
-              name='username'
-              className='border'
-              onChange={onChange}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor='email'>email</label>
-            <input
-              type='text'
-              name='email'
-              className='border'
-              onChange={onChange}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor='password'>password</label>
-            <input
-              type='password'
-              name='password'
-              className='border'
-              onChange={onChange}
-              required
-            />
-          </div>
-          <button type='submit' onClick={onSubmit}>
-            register
-          </button>
+    <div className='w-full h-screen flex justify-center items-center'>
+      <div className='p-5 shadow-2xl flex flex-col'>
+        <form onSubmit={onSubmit} className='flex flex-col gap-2'>
+          <input
+            name='username'
+            placeholder='username'
+            className='border'
+            onChange={onChange}
+            required
+          />
+          <input
+            name='email'
+            placeholder='email'
+            className='border'
+            onChange={onChange}
+            required
+          />
+          <input
+            name='password'
+            type='password'
+            placeholder='password'
+            className='border'
+            onChange={onChange}
+            required
+          />
+          <button type='submit'>register</button>
         </form>
+
         <Link href='/login'>login</Link>
       </div>
     </div>
