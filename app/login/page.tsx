@@ -25,6 +25,7 @@ export default function Page() {
 
     const result = await response.json();
     localStorage.setItem('sender', JSON.stringify(result.user.id));
+
     return result;
   }
 
@@ -35,7 +36,7 @@ export default function Page() {
   const onSubmit = async (e) => {
     e.preventDefault();
     await postData(formData);
-    router.push('/');
+    router.push('/Main');
   };
 
   return (
