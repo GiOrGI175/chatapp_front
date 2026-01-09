@@ -1,11 +1,14 @@
 'use client';
 
+import { useId } from '@/store/setIdStore';
 import { useEffect, useState } from 'react';
 
-export default function MainChat() {
+export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [senderId, setSenderId] = useState(null);
   const [text, setText] = useState('');
+
+  const chatId = useId((state) => state.id);
 
   useEffect(() => {
     const item = localStorage.getItem('sender');
@@ -14,18 +17,20 @@ export default function MainChat() {
     }
   }, []);
 
+  useEffect(() => {
+    if (chatId) {
+      getChatMessages();
+    }
+  }, [chatId]);
+
   async function getChatMessages() {
-    const response = await fetch('http://localhost:3001/api/chat/mainChat');
+    const response = await fetch(`http://localhost:3001/api/chat/${chatId}`);
     const result = await response.json();
-    setMessages(result.messages);
+    setMessages(result.messages || []);
   }
 
-  useEffect(() => {
-    getChatMessages();
-  }, []);
-
   async function addMessage() {
-    await fetch('http://localhost:3001/api/chat/mainChat', {
+    await fetch(`http://localhost:3001/api/chat/${chatId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, senderId }),
@@ -37,12 +42,13 @@ export default function MainChat() {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (!text) return;
+    if (!text.trim()) return;
     addMessage();
   };
 
   return (
-    <div className='w-200 h-125 border flex flex-col justify-between'>
+    <div className='w-50 h-125 border flex flex-col justify-between'>
+      <div>chat:{chatId}</div>
       <div className='p-2 overflow-auto'>
         {messages.map((m) => (
           <div key={m.id}>

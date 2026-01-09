@@ -50,27 +50,30 @@ export default function page() {
       <div className='h-125 flex justify-center items-center p-5 shadow-2xl  flex-col'>
         <form className='w-full  flex flex-col'>
           <div>
-            <label htmlFor=''>username</label>
+            <label htmlFor='username'>username</label>
             <input
               type='text'
+              name='username'
               className='border'
               onChange={onChange}
               required
             />
           </div>
           <div>
-            <label htmlFor=''>email</label>
+            <label htmlFor='email'>email</label>
             <input
               type='text'
+              name='email'
               className='border'
               onChange={onChange}
               required
             />
           </div>
           <div>
-            <label htmlFor=''>password</label>
+            <label htmlFor='password'>password</label>
             <input
               type='password'
+              name='password'
               className='border'
               onChange={onChange}
               required

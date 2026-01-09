@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-export default function page() {
+export default function Page() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -13,63 +13,51 @@ export default function page() {
   const router = useRouter();
 
   async function postData(data) {
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+    const response = await fetch('http://localhost:3001/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Success:', result);
-      return result;
-    } catch (error) {
-      console.error('Error:', error);
+    if (!response.ok) {
+      throw new Error('Login failed');
     }
+
+    const result = await response.json();
+    localStorage.setItem('sender', JSON.stringify(result.user.id));
+    return result;
   }
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    postData(formData);
+    await postData(formData);
     router.push('/');
   };
 
   return (
-    <div className='w-full h-screen flex justify-center items-center rounded-2xl'>
-      <div className='h-125 flex justify-center items-center p-5 shadow-2xl  flex-col'>
-        <form className='w-full  flex flex-col'>
-          <div>
-            <label htmlFor=''>username</label>
-            <input
-              type='text'
-              className='border'
-              onChange={onChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor=''>password</label>
-            <input
-              type='password'
-              className='border'
-              onChange={onChange}
-              required
-            />
-          </div>
-          <button type='submit' onClick={onSubmit}>
-            Login
-          </button>
+    <div className='w-full h-screen flex justify-center items-center'>
+      <div className='p-5 shadow-2xl flex flex-col'>
+        <form onSubmit={onSubmit} className='flex flex-col gap-2'>
+          <input
+            name='username'
+            placeholder='username'
+            className='border'
+            onChange={onChange}
+            required
+          />
+          <input
+            name='password'
+            type='password'
+            placeholder='password'
+            className='border'
+            onChange={onChange}
+            required
+          />
+          <button type='submit'>Login</button>
         </form>
         <Link href='/register'>register</Link>
       </div>
